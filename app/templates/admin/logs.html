@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">操作日志</h1>
+
+<!-- 筛选区域 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="form-inline">
+            <div class="form-group mr-3 mb-2">
+                <input type="text" name="admin" class="form-control" placeholder="搜索管理员" value="{{ request.args.get('admin', '') }}">
+            </div>
+            <div class="form-group mr-3 mb-2">
+                <input type="text" name="action" class="form-control" placeholder="搜索操作" value="{{ request.args.get('action', '') }}">
+            </div>
+            <div class="form-group mr-3 mb-2">
+                <label class="mr-2">时间范围:</label>
+                <input type="date" name="start_date" class="form-control mr-2" value="{{ request.args.get('start_date', '') }}">
+                <span class="mr-2">至</span>
+                <input type="date" name="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <button type="submit" class="btn btn-secondary mb-2">筛选</button>
+            <a href="{{ url_for('admin.logs') }}" class="btn btn-outline-secondary mb-2 ml-2">重置</a>
+        </form>
+    </div>
+</div>
+
+<!-- 日志列表 -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">
+                            <a href="{{ url_for('admin.logs', sort='action', order='asc' if sort_by == 'action' and sort_order == 'desc' else 'desc') }}">
+                                操作
+                                {% if sort_by == 'action' %}
+                                    {% if sort_order == 'asc' %}<i class="fas fa-sort-up ml-1"></i>{% else %}<i class="fas fa-sort-down ml-1"></i>{% endif %}
+                                {% else %}
+                                    <i class="fas fa-sort ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="{{ url_for('admin.logs', sort='admin', order='asc' if sort_by == 'admin' and sort_order == 'desc' else 'desc') }}">
+                                管理员
+                                {% if sort_by == 'admin' %}
+                                    {% if sort_order == 'asc' %}<i class="fas fa-sort-up ml-1"></i>{% else %}<i class="fas fa-sort-down ml-1"></i>{% endif %}
+                                {% else %}
+                                    <i class="fas fa-sort ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="{{ url_for('admin.logs', sort='time', order='asc' if sort_by == 'time' and sort_order == 'desc' else 'desc') }}">
+                                操作时间
+                                {% if sort_by == 'time' %}
+                                    {% if sort_order == 'asc' %}<i class="fas fa-sort-up ml-1"></i>{% else %}<i class="fas fa-sort-down ml-1"></i>{% endif %}
+                                {% else %}
+                                    <i class="fas fa-sort ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.action }}</td>
+                        <td>{{ log.admin_username }}</td>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">暂无操作日志记录</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{% endblock %}

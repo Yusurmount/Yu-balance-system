@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">欢迎使用余额系统</h1>
+    <p class="lead">一个功能完善的余额管理解决方案</p>
+    <hr class="my-4">
+    <p>请选择您的登录类型</p>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('user.login') }}" class="btn btn-primary btn-lg">用户登录</a>
+        <a href="{{ url_for('admin.login') }}" class="btn btn-danger btn-lg ml-3">管理员登录</a>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h5 class="card-title">用户功能</h5>
+                <p class="card-text">查看个人余额信息，管理个人账户</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h5 class="card-title">管理员功能</h5>
+                <p class="card-text">管理用户账户，执行余额操作，查看系统日志</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h5 class="card-title">安全可靠</h5>
+                <p class="card-text">独立的身份验证系统，完整的操作日志记录</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

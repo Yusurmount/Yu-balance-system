@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">余额操作</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">执行余额操作</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.username.label(class="form-control-label") }}
+                        {{ form.username(class="form-control") }}
+                        <small class="form-text text-muted">输入要操作的用户名</small>
+                        {% for error in form.username.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.operation_type.label(class="form-control-label") }}
+                        {{ form.operation_type(class="form-control") }}
+                        {% for error in form.operation_type.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div id="targetUserGroup" class="form-group d-none">
+                        {{ form.target_user.label(class="form-control-label") }}
+                        {{ form.target_user(class="form-control") }}
+                        <small class="form-text text-muted">仅转账操作需要填写目标用户名</small>
+                        {% for error in form.target_user.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.amount.label(class="form-control-label") }}
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">💰</span>
+                            </div>
+                            {{ form.amount(class="form-control") }}
+                            <div class="input-group-append">
+                                <span class="input-group-text">元</span>
+                            </div>
+                        </div>
+                        {% for error in form.amount.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.reason.label(class="form-control-label") }}
+                        {{ form.reason(class="form-control", rows=3) }}
+                        <small class="form-text text-muted">请详细描述操作原因，以便记录和审计</small>
+                        {% for error in form.reason.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#confirmModal">提交操作</button>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary ml-2">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">操作说明</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>充值</strong>：增加用户账户余额</li>
+                    <li class="list-group-item"><strong>扣款</strong>：减少用户账户余额</li>
+                    <li class="list-group-item"><strong>转账</strong>：从一个用户账户向另一个用户账户转移余额</li>
+                    <li class="list-group-item text-danger"><strong>注意</strong>：所有操作都会被记录到系统日志中，请谨慎操作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认操作模态框 -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">确认操作</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>您即将执行以下操作：</p>
+                <ul id="operationDetails">
+                    <li><strong>用户：</strong> <span id="confirmUsername"></span></li>
+                    <li><strong>操作类型：</strong> <span id="confirmOperationType"></span></li>
+                    <li id="confirmTargetUser"><strong>目标用户：</strong> <span></span></li>
+                    <li><strong>金额：</strong> <span id="confirmAmount"></span> 元</li>
+                    <li><strong>原因：</strong> <span id="confirmReason"></span></li>
+                </ul>
+                <p class="text-danger mt-3">此操作将直接影响用户账户余额，确认执行？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmit">确认执行</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+    // 操作类型变化时显示/隐藏目标用户字段
+    $('#operation_type').change(function() {
+        if ($(this).val() === 'transfer') {
+            $('#targetUserGroup').removeClass('d-none');
+            $('#targetUserGroup').addClass('d-block');
+            $('#target_user').prop('required', true);
+        } else {
+            $('#targetUserGroup').removeClass('d-block');
+            $('#targetUserGroup').addClass('d-none');
+            $('#target_user').prop('required', false);
+        }
+    });
+    
+    // 模态框显示时填充数据
+    $('#confirmModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget);
+        var modal = $(this);
+        
+        // 获取表单数据
+        var username = $('#username').val();
+        var operationType = $('#operation_type option:selected').text();
+        var amount = $('#amount').val();
+        var reason = $('#reason').val();
+        var targetUser = $('#target_user').val();
+        
+        // 填充模态框数据
+        modal.find('#confirmUsername').text(username);
+        modal.find('#confirmOperationType').text(operationType);
+        modal.find('#confirmAmount').text(amount);
+        modal.find('#confirmReason').text(reason);
+        
+        // 显示/隐藏目标用户
+        if (operationType === '转账' && targetUser) {
+            modal.find('#confirmTargetUser').show();
+            modal.find('#confirmTargetUser span').text(targetUser);
+        } else {
+            modal.find('#confirmTargetUser').hide();
+        }
+    });
+    
+    // 确认提交表单
+        $('#confirmSubmit').click(function() {
+            $('#confirmModal').modal('hide');
+            // 添加短暂延迟确保模态框关闭后再提交
+            setTimeout(function() {
+                $('form').submit();
+            }, 500);
+        });
+});
+</script>
+{% endblock %}

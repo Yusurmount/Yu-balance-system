@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">系统设置</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">余额显示设置</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.balance_unit.label(class="form-control-label") }}
+                        <div class="input-group">
+                            {{ form.balance_unit(class="form-control") }}
+                            <div class="input-group-append">
+                                <span class="input-group-text">示例: 元, ¥, $, 积分</span>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">设置余额显示的单位符号</small>
+                        {% for error in form.balance_unit.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.balance_emoji.label(class="form-control-label") }}
+                        <div class="input-group">
+                            {{ form.balance_emoji(class="form-control", style="font-size: 1.5rem;") }}
+                            <div class="input-group-append">
+                                <span class="input-group-text" style="font-size: 1.5rem;">💰 ⭐ 💎 🎁 🎯</span>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">设置余额数值前显示的Emoji图标 (留空则不显示)</small>
+                        {% for error in form.balance_emoji.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary ml-2">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">设置说明</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>余额单位</strong>：将显示在所有余额数值后面</li>
+                    <li class="list-group-item"><strong>余额图标</strong>：将显示在所有余额数值前面</li>
+                    <li class="list-group-item"><strong>示例</strong>：设置单位为"元"，图标为"💰"，则余额显示为"💰 100.00 元"</li>
+                    <li class="list-group-item text-info"><strong>提示</strong>：设置后将立即应用到整个系统</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+    // 实时预览功能
+    $('#balance_emoji, #balance_unit').on('input', function() {
+        var emoji = $('#balance_emoji').val() || '';
+        var unit = $('#balance_unit').val() || '';
+        var previewText = `${emoji} 1234.56 ${unit}`.trim();
+        
+        // 如果没有预览区域则创建
+        if ($('#previewArea').length === 0) {
+            var previewDiv = $('<div class="alert alert-info mt-3" id="previewArea"></div>').appendTo('.card-body');
+        }
+        
+        $('#previewArea').html(`<strong>预览:</strong> ${previewText}`);
+    });
+});
+</script>
+{% endblock %}
